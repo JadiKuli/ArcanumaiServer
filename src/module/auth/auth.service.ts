@@ -36,6 +36,9 @@ export class AuthService {
         username: validationUser.username,
         password: await bcrypt.hash(validationUser.password, 10),
       },
+      include: {
+        UserWallet: true,
+      },
     });
 
     return createUser;
