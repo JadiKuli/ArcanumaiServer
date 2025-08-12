@@ -46,6 +46,7 @@ export class PostService {
     postId: string;
     cursor?: string;
     take?: number;
+    userId?: string;
   }) {
     const take = data.take || 10;
     const cursor = data.cursor;
@@ -53,6 +54,7 @@ export class PostService {
     const post = await this._prismaService.post.findUnique({
       where: { id: data.postId },
       include: {
+        userRelation: true,
         _count: {
           select: {
             Likes: true,
@@ -79,6 +81,10 @@ export class PostService {
       },
     });
 
+    const like = await this._prismaService.likes.findFirst({
+      where: { userId: data.userId, postId: data.postId },
+    });
+
     const nextCursor =
       comments.length === take ? comments[comments.length - 1].id : null;
 
@@ -86,6 +92,7 @@ export class PostService {
       message: 'Data fetched successfully',
       data: {
         post,
+        isLiked: !!like,
         comments,
         nextCursor,
       },
@@ -152,6 +159,93 @@ export class PostService {
 
     return {
       message: 'Post successfully deleted',
+    };
+  }
+
+  // Like Post
+  async likePost(postId: string, userId: string) {
+    const post = await this._prismaService.post.findUnique({
+      where: { id: postId },
+    });
+
+    if (!post) throw new NotFoundException('Post not found');
+    const existingLike = await this._prismaService.likes.findFirst({
+      where: { userId, postId },
+    });
+
+    const isUnlike = !!existingLike;
+    if (isUnlike) {
+      await this._prismaService.likes.delete({
+        where: { id: existingLike.id },
+      });
+    } else {
+      await this._prismaService.likes.create({
+        data: { userId, postId },
+        include: {
+          userRelation: true,
+          postRelation: true,
+        },
+      });
+    }
+
+    await this._prismaService.userWallet.update({
+      where: { userId: post.userId },
+      data: {
+        coins: {
+          [isUnlike ? 'decrement' : 'increment']: 2,
+        },
+      },
+    });
+
+    return {
+      message: `Post ${isUnlike ? 'Unliked' : 'Liked'} Successfully`,
+    };
+  }
+
+  // Comment Post
+  async commentPost(postId: string, userId: string, comment: string) {
+    const post = await this._prismaService.post.findUnique({
+      where: { id: postId },
+    });
+
+    if (!post) throw new NotFoundException('Post not found');
+
+    const newComment = await this._prismaService.comment.create({
+      data: {
+        userId,
+        postId,
+        content: comment,
+      },
+      include: {
+        userRelation: true,
+        postRelation: true,
+      },
+    });
+
+    await this._prismaService.userWallet.update({
+      where: { userId: post.userId },
+      data: {
+        coins: {
+          increment: 5,
+        },
+      },
+    });
+
+    return {
+      message: 'Commented Successfully',
+      data: newComment,
+    };
+  }
+
+  // Delete Comment Post
+  async deleteCommentPost(commentId: string, userId: string) {
+    const deletingComment = await this._prismaService.comment.delete({
+      where: { id: commentId, userId },
+    });
+
+    return {
+      message: 'Comment successfully deleted',
+      data: deletingComment,
     };
   }
 }

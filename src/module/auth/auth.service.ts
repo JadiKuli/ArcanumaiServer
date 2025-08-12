@@ -35,6 +35,12 @@ export class AuthService {
       data: {
         username: validationUser.username,
         password: await bcrypt.hash(validationUser.password, 10),
+        UserWallet: {
+          create: {
+            walletId: 'default',
+            coins: 0,
+          },
+        },
       },
       include: {
         UserWallet: true,
@@ -89,13 +95,10 @@ export class AuthService {
     const token = await this._jwtService.signAsync(payload);
 
     return {
-      message: 'User successfully logged in',
-      data: {
-        access_token: token,
-        user: {
-          id: findUser.id,
-          username: findUser.username,
-        },
+      access_token: token,
+      user: {
+        id: findUser.id,
+        username: findUser.username,
       },
     };
   }

@@ -42,12 +42,19 @@ export class PostController {
 
   // Get Detail Post
   @Get(':id')
+  @UseGuards(JwtGuard)
   async getDetail(
     @Param('id') postId: string,
     @Query('cursor') cursor?: string,
     @Query('take') take?: number,
+    @Request() req?: IAuthenticationRequest,
   ) {
-    return this._postService.getDetailPost({ postId, cursor, take });
+    return this._postService.getDetailPost({
+      postId,
+      cursor,
+      take,
+      userId: req?.user?.sub,
+    });
   }
 
   // Get All Post and By User
@@ -79,5 +86,37 @@ export class PostController {
     @Request() req: IAuthenticationRequest,
   ) {
     return this._postService.deletePost(postId, req.user.sub);
+  }
+
+  //Like Comment
+  //Add Remove Like
+  @Post('like/:id')
+  @UseGuards(JwtGuard)
+  async likePost(
+    @Param('id') postId: string,
+    @Request() req: IAuthenticationRequest,
+  ) {
+    return this._postService.likePost(postId, req.user.sub);
+  }
+
+  // Add Comment
+  @Post('comment/:id')
+  @UseGuards(JwtGuard)
+  async commentPost(
+    @Param('id') postId: string,
+    @Request() req: IAuthenticationRequest,
+    @Body() data: { comment: string },
+  ) {
+    return this._postService.commentPost(postId, req.user.sub, data.comment);
+  }
+
+  // Delete Comment
+  @Delete('comment/:id')
+  @UseGuards(JwtGuard)
+  async deleteCommentPost(
+    @Param('id') commentId: string,
+    @Request() req: IAuthenticationRequest,
+  ) {
+    return this._postService.deleteCommentPost(commentId, req.user.sub);
   }
 }
