@@ -114,7 +114,7 @@ export class MusicService {
         throw new BadRequestException('Music not found');
       }
 
-      await this._prismaService.music.update({
+      const updateMusic = await this._prismaService.music.update({
         where: { id: music.id },
         data: {
           title: result.title,
@@ -125,6 +125,16 @@ export class MusicService {
           state: 'completed',
         },
       });
+
+      await this._prismaService.post.create({
+        data: {
+          userId,
+          musicId: updateMusic.id,
+          contentPath: updateMusic.audioUrl,
+          caption: updateMusic.propmt || 'AI Music Generator',
+        },
+      });
+
       return { status: 'completed' };
     }
     return { status: result.state || 'pending' };
@@ -132,7 +142,7 @@ export class MusicService {
 
   // Get Music User
   async getMusic(userId: string) {
-    const music = await this._prismaService.music.findFirst({
+    const music = await this._prismaService.music.findMany({
       where: { userId },
       orderBy: { createdAt: 'desc' },
     });
