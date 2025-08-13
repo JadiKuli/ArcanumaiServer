@@ -248,4 +248,16 @@ export class PostService {
       data: deletingComment,
     };
   }
+
+  // Get Me Post
+  async getMePost(userId: string) {
+    const post = await this._prismaService.post.findMany({
+      where: { userId },
+    });
+
+    return {
+      message: 'Data Fetched Successfully',
+      data: post,
+    };
+  }
 }

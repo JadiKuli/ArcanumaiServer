@@ -119,4 +119,11 @@ export class PostController {
   ) {
     return this._postService.deleteCommentPost(commentId, req.user.sub);
   }
+
+  // Get Me Post
+  @Get('me')
+  @UseGuards(JwtGuard)
+  async getMePost(@Request() req: IAuthenticationRequest) {
+    return this._postService.getMePost(req.user.sub);
+  }
 }
