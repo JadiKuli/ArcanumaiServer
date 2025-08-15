@@ -7,7 +7,12 @@ async function bootstrap() {
 
   app.use(cookieParser());
   app.enableCors({
-    origin: ['http://localdev.com:5173', 'http://app.localdev.com:3000'],
+    origin: [
+      'http://localdev.com:5173',
+      'http://app.localdev.com:3000',
+      'https://arkanumai-landing.vercel.app',
+      'https://arcanumai-client.vercel.app',
+    ],
     credentials: true,
   });
 
