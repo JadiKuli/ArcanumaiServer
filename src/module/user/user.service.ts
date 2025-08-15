@@ -8,6 +8,16 @@ export class UserService {
   async getUser(id: string) {
     return this._prismaService.user.findUnique({
       where: { id },
+      include: {
+        UserWallet: true,
+        _count: {
+          select: {
+            Post: true,
+            Likes: true,
+            Comment: true,
+          },
+        },
+      },
     });
   }
 }

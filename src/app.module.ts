@@ -9,6 +9,7 @@ import { MusicController } from './module/music/music.controller';
 import { MusicModule } from './module/music/music.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
+import { WebsocketGateway } from './shared/config/websocket.config';
 
 @Module({
   imports: [
@@ -32,7 +33,7 @@ import { join } from 'path';
       },
     }),
   ],
-  controllers: [MusicController],
-  providers: [MusicService],
+  controllers: [],
+  providers: [],
 })
 export class AppModule {}
