@@ -17,7 +17,7 @@ export class WebsocketGateway
   @WebSocketServer()
   server: Server;
 
-  private clients = new Map<string, Socket>();
+  private readonly clients = new Map<string, Socket>();
 
   handleConnection(client: Socket) {
     console.log('✅ Client connected:', client.id);
