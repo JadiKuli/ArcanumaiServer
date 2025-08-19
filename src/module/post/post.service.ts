@@ -55,6 +55,8 @@ export class PostService {
       where: { id: data.postId },
       include: {
         userRelation: true,
+        musicRelation: true,
+        meshRelation: true,
         _count: {
           select: {
             Likes: true,
@@ -109,6 +111,7 @@ export class PostService {
         createdAt: 'desc',
       },
       include: {
+        musicRelation: true,
         _count: {
           select: {
             Likes: true,

@@ -11,7 +11,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgres"
+  provider = "mysql"
   url      = env("DATABASE_URL")
 }
 
@@ -28,6 +28,7 @@ model User {
   Likes        Likes[]
   Comment      Comment[]
   Music        Music[]
+  Mesh         Mesh[]
 
   @@map("users")
 }
@@ -48,6 +49,7 @@ model Post {
   id          String    @id @default(uuid())
   userId      String
   musicId     String?   @unique
+  meshId      String?   @unique
   contentPath String?
   caption     String
   createdAt   DateTime  @default(now())
@@ -56,6 +58,7 @@ model Post {
 
   userRelation  User   @relation(fields: [userId], references: [id])
   musicRelation Music? @relation(fields: [musicId], references: [id])
+  meshRelation  Mesh?  @relation(fields: [meshId], references: [id])
 
   @@map("posts")
 }
@@ -105,4 +108,46 @@ model Music {
   user User  @relation(fields: [userId], references: [id])
 
   @@map("musics")
+}
+
+// Mesh Section
+model Mesh {
+  id            String  @id @default(uuid())
+  prompt        String  @db.Text
+  modelType     String
+  taskIdPreview String  @unique @db.VarChar(100)
+  taskIdRefine  String? @unique @db.VarChar(100)
+  totalView     Int     @default(0)
+
+  modelGlbPreview  String? @db.VarChar(255)
+  modelFbxPreview  String? @db.VarChar(255)
+  modelUsdzPreview String? @db.VarChar(255)
+  modelObjPreview  String? @db.VarChar(255)
+  previewImage     String? @db.VarChar(255)
+  videoPreview     String? @db.VarChar(255)
+
+  modelGlbRefine  String? @db.VarChar(255)
+  modelFbxRefine  String? @db.VarChar(255)
+  modelUsdzRefine String? @db.VarChar(255)
+  modelObjRefine  String? @db.VarChar(255)
+  modelMtlRefine  String? @db.VarChar(255)
+  refineImage     String? @db.VarChar(255)
+  videoRefine     String? @db.VarChar(255)
+
+  userId         String?
+  user           User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  state     String    @default("pending") @db.VarChar(20)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  Texture   Texture[]
+  Post      Post?
+}
+
+model Texture {
+  id     String @id @default(uuid())
+  meshId String @db.VarChar(100)
+  type   String @db.VarChar(50)
+  url    String @db.VarChar(255)
+  mesh   Mesh   @relation(fields: [meshId], references: [id], onDelete: Cascade)
 }

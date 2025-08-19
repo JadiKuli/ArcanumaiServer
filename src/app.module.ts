@@ -8,6 +8,7 @@ import { MusicModule } from './module/music/music.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { TestingModule } from './module/testing/testing.module';
+import { MeshModule } from './module/mesh/mesh.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { TestingModule } from './module/testing/testing.module';
       },
     }),
     TestingModule,
+    MeshModule,
   ],
   controllers: [],
   providers: [],
