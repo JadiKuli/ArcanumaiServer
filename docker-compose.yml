@@ -1,6 +1,6 @@
 services:
   app:
-    image: ghcr.io/jadikuli/server-arcanumai:1.0
+    image: ghcr.io/jadikuli/server-arcanumai:1.0-stable
     container_name: arcanum-app
     restart: always
     ports:

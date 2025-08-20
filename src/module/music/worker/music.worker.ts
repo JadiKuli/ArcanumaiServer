@@ -59,22 +59,38 @@ export class MusicWorker {
     const startTime = Date.now();
     console.log(`📌 Processing task ${taskId}`);
 
+    const fetchTask = async () => {
+      const res = await axios.get(`${BASE_URL}/task/${taskId}`, {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${process.env.MUSIC_API_KEY}`,
+        },
+        validateStatus: (status) => status >= 200 && status < 300,
+      });
+
+      if (res.data.state === 'not_ready' || !Array.isArray(res.data.data)) {
+        console.log(`📌 Task ${taskId} not ready`);
+        return { state: 'waiting', result: null };
+      }
+
+      const result = res.data.data[0] || null;
+      return { state: result?.state || 'waiting', result };
+    };
+
     while (true) {
       try {
         console.log(`📌 Fetching task ${taskId}`);
-        const fetchResult = await axios.get(`${BASE_URL}/task/${taskId}`, {
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${process.env.MUSIC_API_KEY}`,
-          },
-        });
+        const { state, result } = await fetchTask();
 
-        const result = fetchResult.data.data[0];
+        if (state === 'waiting' || state === 'running') {
+          console.log(`📌 Task ${taskId} state: ${state}`);
+          this.ws.sendMessage(taskId, 'waiting', 'Still processing...');
+        }
 
-        if (result?.state === 'succeeded') {
+        if (state === 'succeeded' && result) {
           this.ws.sendMessage(taskId, 'downloading', 'Downloading files...');
 
-          const getFileExtension = (url: string): string =>
+          const getFileExtension = (url: string) =>
             path.extname(new URL(url).pathname) || '.bin';
 
           const imageExt = result.image_url
@@ -101,10 +117,7 @@ export class MusicWorker {
           const music = await this.prisma.music.findUnique({
             where: { externalId: taskId },
           });
-
-          if (!music) {
-            throw new Error(`Music with taskId ${taskId} not found`);
-          }
+          if (!music) throw new Error(`Music with taskId ${taskId} not found`);
 
           const updatedMusic = await this.prisma.music.update({
             where: { externalId: taskId },
@@ -131,9 +144,6 @@ export class MusicWorker {
           this.ws.sendMessage(taskId, 'done', 'Task completed.');
           break;
         }
-
-        console.log(`📌 Task ${taskId} state: ${result?.state}`);
-        this.ws.sendMessage(taskId, 'waiting', 'Still processing...');
       } catch (error: any) {
         this.ws.sendMessage(taskId, 'error', `Error: ${error.message}`);
         console.error(`📌 Error processing task ${taskId}: ${error.message}`);
