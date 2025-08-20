@@ -1,4 +1,25 @@
+# Node
 node_modules
 npm-debug.log
+pnpm-debug.log
+yarn-debug.log
+yarn-error.log
+
+# Build output
+dist
+build
+.out
+
+# Prisma
 generated
+
+# Local uploads / storage
 uploads
+*.sqlite
+
+# OS / editor
+.DS_Store
+*.swp
+*.swo
+.idea
+.vscode

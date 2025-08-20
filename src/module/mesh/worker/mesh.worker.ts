@@ -58,43 +58,37 @@ export class MeshWorker {
     localOutPath: string,
   ): Promise<void> {
     const projectRoot = process.cwd();
-    const scriptPath = path.join(projectRoot, 'render_thumb.py');
-    const absGlb = path.join(projectRoot, localGlbPath);
-    const absOut = path.join(projectRoot, localOutPath);
+
+    const scriptPath =
+      process.env.BLENDER_PY || path.join(projectRoot, 'render_thumb.py');
+    const absGlb = path.resolve(projectRoot, localGlbPath);
+    const absOut = path.resolve(projectRoot, localOutPath);
 
     if (!fs.existsSync(absGlb)) {
       throw new Error(`GLB file not found at ${absGlb}`);
     }
 
     return new Promise((resolve, reject) => {
-      const blender = spawn(
-        process.platform === 'win32' ? 'blender' : 'xvfb-run',
-        process.platform === 'win32'
-          ? ['--background', '--python', scriptPath, '--', absGlb, absOut]
-          : [
-              '-a',
-              '-s',
-              '-screen 0 512x512x24',
-              'blender',
-              '--background',
-              '--python',
-              scriptPath,
-              '--',
-              absGlb,
-              absOut,
-            ],
-        {
-          cwd: projectRoot,
-          stdio: ['ignore', 'pipe', 'pipe'],
-        },
-      );
+      const args = ['-b', '-noaudio', '-P', scriptPath, '--', absGlb, absOut];
 
-      blender.stdout.on('data', (d) => console.log(d.toString()));
-      blender.stderr.on('data', (d) => console.error(d.toString()));
+      const blender = spawn('blender', args, {
+        cwd: projectRoot,
+        stdio: ['ignore', 'pipe', 'pipe'],
+      });
+
+      blender.stdout.on('data', (d) => console.log(`[Blender]: ${d}`));
+      blender.stderr.on('data', (d) => console.error(`[Blender ERR]: ${d}`));
 
       blender.on('exit', (code) => {
-        if (code === 0) resolve();
-        else reject(new Error(`Blender exited with code ${code}`));
+        if (code === 0) {
+          resolve();
+        } else {
+          reject(new Error(`Blender exited with code ${code}`));
+        }
+      });
+
+      blender.on('error', (err) => {
+        reject(new Error(`Failed to spawn Blender: ${err.message}`));
       });
     });
   }
@@ -183,11 +177,7 @@ export class MeshWorker {
               },
             });
 
-            this.ws.sendMessage(
-              taskId,
-              'done',
-              '3D generated successfully.',
-            );
+            this.ws.sendMessage(taskId, 'done', '3D generated successfully.');
 
             break;
           } catch (thumbError: any) {

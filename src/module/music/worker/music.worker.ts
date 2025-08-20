@@ -42,6 +42,7 @@ export class MusicWorker {
         const taskId = MusicWorker.queue.shift();
         if (taskId) {
           await this.processTask(taskId);
+          console.log(`📌 Task ${taskId} processed`);
         }
         setTimeout(() => void pollQueue(), POLL_INTERVAL);
       } else {
@@ -60,6 +61,7 @@ export class MusicWorker {
 
     while (true) {
       try {
+        console.log(`📌 Fetching task ${taskId}`);
         const fetchResult = await axios.get(`${BASE_URL}/task/${taskId}`, {
           headers: {
             'Content-Type': 'application/json',
@@ -125,6 +127,7 @@ export class MusicWorker {
             },
           });
 
+          console.log(`📌 Task ${taskId} completed`);
           this.ws.sendMessage(taskId, 'done', 'Task completed.');
           break;
         }
@@ -132,7 +135,8 @@ export class MusicWorker {
         console.log(`📌 Task ${taskId} state: ${result?.state}`);
         this.ws.sendMessage(taskId, 'waiting', 'Still processing...');
       } catch (error: any) {
-        this.ws.sendMessage(taskId, 'processing', `Error: ${error.message}`);
+        this.ws.sendMessage(taskId, 'error', `Error: ${error.message}`);
+        console.error(`📌 Error processing task ${taskId}: ${error.message}`);
       }
 
       if (Date.now() - startTime > MAX_TIME) {

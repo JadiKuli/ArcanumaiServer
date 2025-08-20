@@ -10,8 +10,8 @@ async function bootstrap() {
     origin: [
       'http://localdev.com:5173',
       'http://app.localdev.com:3000',
-      'https://arkanumai-landing.vercel.app',
-      'https://arcanumai-client.vercel.app',
+      'https://arcanumai.kuncipintu.my.id',
+      'https://app.arcanumai.kuncipintu.my.id',
     ],
     credentials: true,
   });

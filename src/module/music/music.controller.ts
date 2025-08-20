@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  Param,
   Post,
   Request,
   UseGuards,
@@ -36,5 +37,15 @@ export class MusicController {
   @Get('all')
   async getAllMusic() {
     return await this._musicService.getAllMusic();
+  }
+
+  // Get Progress Music
+  @Get(':id')
+  @UseGuards(JwtGuard)
+  async getProgressMusic(
+    @Request() req: IAuthenticationRequest,
+    @Param('id') id: string,
+  ) {
+    return await this._musicService.getProgressMusic(req.user.sub, id);
   }
 }
