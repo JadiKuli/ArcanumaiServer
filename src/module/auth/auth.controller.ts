@@ -21,9 +21,9 @@ export class AuthController {
 
     res.cookie('access_token', access_token, {
       httpOnly: true,
-      secure: true,
-      sameSite: 'none',
-      domain: '.kuncipintu.my.id',
+      secure: false,
+      sameSite: 'lax',
+      domain: '.localdev.com',
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 

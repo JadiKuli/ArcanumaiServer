@@ -28,13 +28,14 @@ export class PostController {
   @UseInterceptors(FileInterceptor('file', MulterConfig))
   async postImages(
     @Request() req: IAuthenticationRequest,
-    @Body() data: { caption: string },
-    @UploadedFile() file: Express.Multer.File,
+    @Body() data: { caption: string; contentPath?: string },
+    @UploadedFile() file?: Express.Multer.File,
   ) {
     return this._postService.postImages(
       {
         userId: req.user.sub,
         caption: data.caption,
+        contentPath: data.contentPath,
       },
       file,
     );

@@ -16,10 +16,17 @@ export class PostService {
     data: {
       userId: string;
       caption: string;
+      contentPath?: string;
     },
-    file: Express.Multer.File,
+    file?: Express.Multer.File,
   ) {
-    const fileName = await this._supabaseService.uploadFile(file);
+    let fileName = '';
+    if (file) {
+      fileName = await this._supabaseService.uploadFile(file);
+    } else {
+      fileName = data.contentPath || '';
+    }
+
     const post = await this._prismaService.post.create({
       data: {
         userId: data.userId,
